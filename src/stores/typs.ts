@@ -1,4 +1,4 @@
-export type player = {
+export type Player = {
   name: string,
   hasWonGame: boolean | null,
   matchesWon: number,
