@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { player } from '@/stores/typs.ts'
+import type { Player } from '@/stores/typs.ts'
 import { computed, ref, type Ref } from 'vue'
+import ListOfMatchUps from "@/components/ListOfMatchUps.vue";
 
-const players: Ref<player[]> = ref([])
+const players: Ref<Player[]> = ref([])
 const matchUps: Ref<object> = ref({})
 const round: Ref<Number> = ref(1)
 const matchupSize: Ref<Number> = ref(2)
@@ -114,6 +115,12 @@ const startsGame = () => {
         </li>
       </ul>
     </aside>
+
+  <div v-if="gameHasStarted">
+    <list-of-match-ups :match-ups="matchUps[1]">
+
+    </list-of-match-ups>
+  </div>
   </body>
 </template>
 <style>
