@@ -13,13 +13,15 @@ const matchUps : [Player[]] = computed(() => {
 
 const playerWon = (wonPlayer: Player, lostPlayer: Player) => {
   wonPlayer.hasWonGame = true;
-  lostPlayer.hasWonGame = false;
+  if (lostPlayer) {
+    lostPlayer.hasWonGame = false;
+  }
 }
 
 const getStyleOfWinOrLose = (player: Player) => {
-  if (player.hasWonGame === true){
+  if (player?.hasWonGame === true){
     return "has-won";
-  } else if (player.hasWonGame === false) {
+  } else if (player?.hasWonGame === false) {
     return "has-lost";
   } else {
     return "unknown";
