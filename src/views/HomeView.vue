@@ -18,11 +18,11 @@ const addToPlayers = () => {
       matchesWon: 0,
       randomValue: 0,
     })
-    console.log('ok')
+    console.log('ok');
   } else {
-    console.log('not ok')
+    console.log('not ok');
   }
-  console.log(players.value)
+  console.log(players.value);
 }
 
 const removePlayer = (index: number) => {
