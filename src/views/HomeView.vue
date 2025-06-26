@@ -176,7 +176,7 @@ const startsGame = () => {
           v-for="(player, index) in players"
           @click="!gameHasStarted ? removePlayer(index) : null"
         >
-          {{ player.name }} Wins: {{ player.matchesWon }}
+          {{ player.name }}
         </li>
       </ul>
     </aside>
