@@ -20,12 +20,26 @@ const addToPlayers = () => {
       matchesWon: 0,
       randomValue: 0,
     })
-    console.log('ok');
   } else {
-    console.log('not ok');
   }
-  console.log(players.value);
 }
+
+const getCheckBoxValue = computed(() => {
+  const querySelector: HTMLInputElement | null = document.querySelector("#drop-players-that-have-lost");
+  return querySelector?.checked;
+});
+
+const getMaxMatchSizeInputValue = computed(() => {
+  const querySelector: HTMLInputElement | null = document.querySelector("#number-of-players-per-game");
+  if (querySelector?.value){
+
+    if (parseInt(querySelector?.value ) >= 4 ) return "4";
+    if (parseInt(querySelector?.value ) <= 2 ) return "2";
+
+    return querySelector?.value;
+  }
+  return "2";
+});
 
 const removePlayer = (index: number) => {
   players.value.splice(index, 1)
@@ -34,14 +48,18 @@ const removePlayer = (index: number) => {
 const startNextRound = (match: [Player[]]) => {
   round.value++;
 
-  if (amountOfMatches.value + 1 < round.value){
+  if (amountOfMatches + 1 < round.value){
     gameHasFinished = true;
     return
   }
 
-  const allPlayers = JSON.parse(JSON.stringify(match.flat(2)));
+  let allPlayers: Player[] = JSON.parse(JSON.stringify(match.flat(2)));
+  console.log(getCheckBoxValue.value);
+  if (getCheckBoxValue.value){
+    allPlayers = allPlayers.filter((player: Player) => {return player.hasWonGame === true});
+    console.log(allPlayers);
+  }
   allPlayers.sort((player1: Player, player2: Player) => player2.matchesWon - player1.matchesWon);
-  console.log(allPlayers);
 
 
     allPlayers.forEach((player: Player, index: number) => {
@@ -53,17 +71,15 @@ const startNextRound = (match: [Player[]]) => {
         }
         if (match.length > 0) {
           matchUps.value[`${round.value}`].push(match);
-          console.log(matchUps.value[`${round.value}`]);
         }
       }
-    })
-    if (matchUps.value[`${round.value}`].length !== allPlayers.length / 2) {
+    });
+    if (matchUps.value[`${round.value}`].length !== allPlayers.length / matchupSize.value) {
       const playersThatHaveFoundAMatchUp = matchUps.value[`${round.value}`].length * matchupSize.value
-      allPlayers.forEach((player: Player, index: number) => { // spieler anzahl pro match ist noch nicht richtig
-        const match = [];
+      const match: Player[] = [];
+      allPlayers.forEach((player: Player, index: number) => {
         if (index + 1 > playersThatHaveFoundAMatchUp) {
           match.push(allPlayers[index]);
-          console.log(player);
         }
         if (allPlayers.length === index + 1) {
           matchUps.value[`${round.value}`].push(match);
@@ -72,29 +88,35 @@ const startNextRound = (match: [Player[]]) => {
     }
 
     console.log(round.value)
-    console.log(amountOfMatches.value)
+    console.log(amountOfMatches)
 }
 
-const amountOfMatches = computed(() => {
+
+let amountOfMatches: number;
+const setAmountOfMatches = () => {
 // einfach nicht nachfragen, was ich hier am Kochen war
-  let r = 0
-  let x = players.value.length
+  let r = 0;
+  let x = players.value.length;
   do {
-    x = x / matchupSize.value
+    x = x / matchupSize.value;
     if (x <= 1 ) {
-      break
+      break;
     }
     r++;
-  } while (true)
-  return r
-})
+  } while (true);
+  if (r === 0){
+    amountOfMatches = 1;
+  }
+  amountOfMatches = r;
+}
 
 const startsGame = () => {
-  gameHasStarted = true
-
-  for (let i = 1; i - 1 <= amountOfMatches.value; i++) {
+  gameHasStarted = true;
+  setAmountOfMatches();
+  matchupSize.value = parseInt(getMaxMatchSizeInputValue.value);
+  for (let i = 1; i - 1 <= amountOfMatches; i++) {
     // ist schon ok hier
-    matchUps.value[`${i}`] = []
+    matchUps.value[`${i}`] = [];
   }
 
   players.value.forEach((player) => (player.randomValue = Math.random()))
@@ -109,24 +131,22 @@ const startsGame = () => {
       }
       if (match.length > 0) {
         matchUps.value[1].push(match)
-        console.log(matchUps.value[1])
       }
     }
   })
-  if (matchUps.value[1].length !== players.value.length / 2) {
+  if (matchUps.value[1].length !== players.value.length  / matchupSize.value) {
     const playersThatHaveFoundAMatchUp = matchUps.value[1].length * matchupSize.value
+    const match: Player[] = []
     players.value.forEach((player, index) => { // spieler anzahl pro match ist noch nicht richtig
-      const match = []
       if (index + 1 > playersThatHaveFoundAMatchUp) {
-        match.push(players.value[index])
-        console.log(player)
+        match.push(player)
       }
       if (players.value.length === index + 1) {
-        matchUps.value[1].push(match)
+        matchUps.value[1].push(match);
       }
     })
   }
-  console.log(matchUps.value)
+  console.log(matchUps.value);
 }
 </script>
 
@@ -139,15 +159,17 @@ const startsGame = () => {
         name="user"
         id="user"
         @keydown.enter="!gameHasStarted ? addToPlayers() : null"
+        :disabled="gameHasStarted"
       />
-      <!--      <label for="number-of-players-per-game">anzahl Spieler pro spiel: </label>-->
-      <!--      <input type="number" id="number-of-players-per-game" name="number-of-players-per-game">-->
+      <label for="number-of-players-per-game">anzahl Spieler pro spiel: </label>
+      <input type="number" id="number-of-players-per-game" name="number-of-players-per-game" max="4" min="2" value="2" :disabled="gameHasStarted">
+      <label for="drop-players-that-have-lost">Drop Player if they lose: </label>
+      <input type="checkbox" id="drop-players-that-have-lost" name="drop-players-that-have-lost" :disabled="gameHasStarted">
       <button @click="addToPlayers" :disabled="gameHasStarted">add player</button>
-      <button v-if="!gameHasStarted" @click="startsGame">Start Game</button>
-      <button v-if="gameHasStarted" disabled>Start next round</button>
+      <button v-if="!gameHasStarted" @click="startsGame" :disabled="parseInt(getMaxMatchSizeInputValue) > players.length">Start Game</button>
       <a href=""><button>Reset</button></a>
     </section>
-    <aside>
+    <aside id="player-lobby">
       <h3>Players</h3>
       <ul>
         <li
@@ -160,7 +182,7 @@ const startsGame = () => {
     </aside>
 
   <div v-if="gameHasStarted">
-    <div v-for="match in matchUps">
+    <div v-for="(match: Player[][]) in matchUps">
       <list-of-match-ups  :match-ups="match" v-if="match[0]" @submit-match="startNextRound" :current-round="round">
 
       </list-of-match-ups>
@@ -179,5 +201,16 @@ body {
 
 .inputs {
   text-align: center;
+}
+
+#player-lobby{
+  background-color: aliceblue;
+  width: 300px;
+  border: aliceblue solid 1px;
+
+  & li{
+    margin: 1px;
+    background-color: darkgrey;
+  }
 }
 </style>

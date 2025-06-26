@@ -4,44 +4,51 @@ import type { Player } from '@/stores/typs.ts'
 import {computed, ref, type Ref} from "vue";
 const roundHasFinished: Ref<boolean> = ref(false);
 
-const props = defineProps({
-  matchUps: Array,
-  currentRound: Number,
-})
+const props = defineProps<{
+  matchUps: Player[][],
+  currentRound: number,
+}>();
 
-const currentRound = computed(() => {
-  return props.currentRound;
-})
 
-const matchUps : [Player[]] = computed(() => {
+const setUp = () => {
+  currentRoundForThisMatch = props.currentRound;
+}
+let currentRoundForThisMatch: number;
+
+
+const matchUp = computed(() => {
   return props.matchUps
 });
 
 const emits = defineEmits<{
-  (e: "submitMatch", match: [Player[]]): void
+  (e: "submitMatch", match: Player[][]): void
 }>();
 
 const allGamsHaveFinished = (): boolean => {
   if (roundHasFinished.value) {
     return false
   }
-  return matchUps.value.flat(2).every((player: Player) => player.hasWonGame !== null);
+  console.log(matchUp.value.flat(2))
+  return matchUp.value.flat(2).every((player: Player) => player.hasWonGame !== null);
 }
 
-const playerWon = (wonPlayer: Player, lostPlayer: Player) => {
+const playerWon = (wonPlayer: Player, allPlayers: Player[]) => {
+  allPlayers.forEach((player: Player) => {
+    player.hasWonGame = false;
+  })
+
   wonPlayer.hasWonGame = true;
-  if (lostPlayer) {
-    lostPlayer.hasWonGame = false;
-  }
+
 }
 
 const confirmWin = () => {
-  matchUps.value.forEach((players: Player[]) => {
-    players.forEach((player: Player) => {
-      if(player.hasWonGame){
-        player.matchesWon++;
-      }
-    });
+  matchUp.value.forEach((players: Player[]) => {
+
+      players.forEach((player: Player) => {
+        if(player.hasWonGame){
+          player.matchesWon++;
+        }
+      });
   });
 }
 
@@ -54,36 +61,50 @@ const getStyleOfWinOrLose = (player: Player) => {
     return "unknown";
   }
 }
-
+setUp()
 </script>
 
 <template>
   <table>
     <caption>
-      Match {{ currentRound }}
+      Match {{ currentRoundForThisMatch }}
     </caption>
     <thead>
-      <tr>
-        <th>Name</th>
-        <th>Wins</th>
-        <th></th>
-        <th>Name</th>
-        <th>Wins</th>
-      </tr>
+    <tr>
+
+      <th v-if="matchUp[0][0]">Name</th>
+      <th v-if="matchUp[0][0]">Wins</th>
+      <th v-if="matchUp[0][1]"></th>
+      <th v-if="matchUp[0][1]">Name</th>
+      <th v-if="matchUp[0][1]">Wins</th>
+      <th v-if="matchUp[0][2]"></th>
+      <th v-if="matchUp[0][2]">Name</th>
+      <th v-if="matchUp[0][2]">Wins</th>
+      <th v-if="matchUp[0][3]"></th>
+      <th v-if="matchUp[0][3]">Name</th>
+      <th v-if="matchUp[0][3]">Wins</th>
+
+    </tr>
     </thead>
     <tbody>
-      <tr v-for="player in matchUps" key="matchUp">
-          <td @click="!roundHasFinished ? playerWon(player[0], player[1]): null" :class="getStyleOfWinOrLose(player[0])">{{player[0].name}}</td>
-          <td>{{player[0].matchesWon}}</td>
-          <td>VS.</td>
-          <td @click="!roundHasFinished ? player[1] ? playerWon(player[1], player[0]): null: null" :class="getStyleOfWinOrLose(player[1])">{{player[1]?.name}}</td>
-          <td>{{player[1]?.matchesWon}}</td>
+      <tr v-for="players in matchUp" key="matchUp">
+          <td v-if="players[0]" @click="!roundHasFinished ? playerWon(players[0], players): null" :class="getStyleOfWinOrLose(players[0])">{{players[0].name}}</td>
+          <td v-if="players[0]">{{players[0].matchesWon}}</td>
+          <td v-if="players[1]">VS.</td>
+          <td v-if="players[1]" @click="!roundHasFinished ? players[1] ? playerWon(players[1], players): null: null" :class="getStyleOfWinOrLose(players[1])">{{players[1]?.name}}</td>
+          <td v-if="players[1]">{{players[1]?.matchesWon}}</td>
+          <td v-if="players[2]">VS.</td>
+          <td v-if="players[2]" @click="!roundHasFinished ? players[2] ? playerWon(players[2], players): null: null" :class="getStyleOfWinOrLose(players[2])">{{players[2]?.name}}</td>
+          <td v-if="players[2]">{{players[2]?.matchesWon}}</td>
+          <td v-if="players[3]">VS.</td>
+          <td v-if="players[3]" @click="!roundHasFinished ? players[3] ? playerWon(players[3], players): null: null" :class="getStyleOfWinOrLose(players[3])">{{players[3]?.name}}</td>
+          <td v-if="players[3]">{{players[3]?.matchesWon}}</td>
       </tr>
     </tbody>
   </table>
   <button @click="() => {
     confirmWin();
-    emits('submitMatch', matchUps);
+    emits('submitMatch', matchUp);
     roundHasFinished = true
   }" :disabled="!allGamsHaveFinished()" v-if="!roundHasFinished">Next Round</button>
 </template>
