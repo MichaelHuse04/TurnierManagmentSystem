@@ -61,13 +61,12 @@ const getStyleOfWinOrLose = (player: Player) => {
     return "unknown";
   }
 }
-setUp()
 </script>
 
 <template>
   <table>
     <caption>
-      Match {{ currentRoundForThisMatch }}
+      Match {{ props.currentRound }}
     </caption>
     <thead>
     <tr>
