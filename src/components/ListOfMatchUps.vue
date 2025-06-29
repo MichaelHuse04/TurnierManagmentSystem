@@ -10,11 +10,6 @@ const props = defineProps<{
 }>();
 
 
-const setUp = () => {
-  currentRoundForThisMatch = props.currentRound;
-}
-let currentRoundForThisMatch: number;
-
 
 const matchUp = computed(() => {
   return props.matchUps
@@ -70,34 +65,20 @@ const getStyleOfWinOrLose = (player: Player) => {
     </caption>
     <thead>
     <tr>
-
-      <th v-if="matchUp[0][0]">Name</th>
-      <th v-if="matchUp[0][0]">Wins</th>
-      <th v-if="matchUp[0][1]"></th>
-      <th v-if="matchUp[0][1]">Name</th>
-      <th v-if="matchUp[0][1]">Wins</th>
-      <th v-if="matchUp[0][2]"></th>
-      <th v-if="matchUp[0][2]">Name</th>
-      <th v-if="matchUp[0][2]">Wins</th>
-      <th v-if="matchUp[0][3]"></th>
-      <th v-if="matchUp[0][3]">Name</th>
-      <th v-if="matchUp[0][3]">Wins</th>
-
+      <template v-for="(player, index) in matchUp[0]" v-bind:key="index">
+          <td>Name</td>
+          <td>Wins</td>
+          <td v-if="matchUp[0].length !== index + 1"></td>
+      </template>
     </tr>
     </thead>
     <tbody>
-      <tr v-for="players in matchUp" key="matchUp">
-          <td v-if="players[0]" @click="!roundHasFinished ? playerWon(players[0], players): null" :class="getStyleOfWinOrLose(players[0])">{{players[0].name}}</td>
-          <td v-if="players[0]">{{players[0].matchesWon}}</td>
-          <td v-if="players[1]">VS.</td>
-          <td v-if="players[1]" @click="!roundHasFinished ? players[1] ? playerWon(players[1], players): null: null" :class="getStyleOfWinOrLose(players[1])">{{players[1]?.name}}</td>
-          <td v-if="players[1]">{{players[1]?.matchesWon}}</td>
-          <td v-if="players[2]">VS.</td>
-          <td v-if="players[2]" @click="!roundHasFinished ? players[2] ? playerWon(players[2], players): null: null" :class="getStyleOfWinOrLose(players[2])">{{players[2]?.name}}</td>
-          <td v-if="players[2]">{{players[2]?.matchesWon}}</td>
-          <td v-if="players[3]">VS.</td>
-          <td v-if="players[3]" @click="!roundHasFinished ? players[3] ? playerWon(players[3], players): null: null" :class="getStyleOfWinOrLose(players[3])">{{players[3]?.name}}</td>
-          <td v-if="players[3]">{{players[3]?.matchesWon}}</td>
+      <tr v-for="(players, index) in matchUp" v-bind:key="index">
+        <template v-for="(player, i) in players" v-bind:key="player">
+            <td @click="!roundHasFinished ? playerWon(player, players): null" :class="getStyleOfWinOrLose(player)">{{player.name}}</td>
+            <td>{{player.matchesWon}}</td>
+            <td v-if="players.length !== i + 1">VS.</td>
+        </template>
       </tr>
     </tbody>
   </table>
