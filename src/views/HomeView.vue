@@ -5,7 +5,8 @@ import ListOfMatchUps from "@/components/ListOfMatchUps.vue";
 import FinishedView from "@/components/FinishedView.vue";
 
 const players: Ref<Player[]> = ref([])
-const matchUps: Ref<object> = ref({})
+// const matchUps: Ref<object> = ref({})
+const matchUps: Map<number,Player[][]> = new Map()
 const round: Ref<number> = ref(1)
 const matchupSize: Ref<number> = ref(2)
 const playerName: Ref<string> = ref("");
@@ -45,7 +46,7 @@ const removePlayer = (index: number) => {
   players.value.splice(index, 1)
 }
 
-const startNextRound = (match: [Player[]]) => {
+const startNextRound = (match: Player[][]) => { // TODO: doesen't work anymore or something (the reference won't break :{ )
   round.value++;
 
   if (amountOfMatches + 1 < round.value) {
@@ -53,7 +54,9 @@ const startNextRound = (match: [Player[]]) => {
     return
   }
 
-  let allPlayers: Player[] = JSON.parse(JSON.stringify(match.flat(2)));
+  // let allPlayers: Player[] = JSON.parse(JSON.stringify(match.flat(2)));
+  let allPlayers: Player[] = Array.from(match).flat(2);
+
   console.log(getCheckBoxValue.value);
   if (getCheckBoxValue.value) {
     allPlayers = allPlayers.filter((player: Player) => {
@@ -72,19 +75,23 @@ const startNextRound = (match: [Player[]]) => {
         match.push(allPlayers[index - i]);
       }
       if (match.length > 0) {
-        matchUps.value[`${round.value}`].push(match);
+        const m: Player[][] = matchUps.get(round.value)!!;
+        m.push(match)
+        matchUps.set(round.value, m);
       }
     }
   });
-  if (matchUps.value[`${round.value}`].length !== allPlayers.length / matchupSize.value) {
-    const playersThatHaveFoundAMatchUp = matchUps.value[`${round.value}`].length * matchupSize.value
+  if (matchUps.get(round.value)!!.length !== allPlayers.length / matchupSize.value) {
+    const playersThatHaveFoundAMatchUp = matchUps.get(round.value)!!.length * matchupSize.value
     const match: Player[] = [];
     allPlayers.forEach((player: Player, index: number) => {
       if (index + 1 > playersThatHaveFoundAMatchUp) {
         match.push(allPlayers[index]);
       }
       if (allPlayers.length === index + 1) {
-        matchUps.value[`${round.value}`].push(match);
+        const m: Player[][] = matchUps.get(round.value)!!;
+        m.push(match)
+        matchUps.set(round.value, m);
       }
     });
   }
@@ -118,7 +125,7 @@ const startsGame = () => {
 
   for (let i = 1; i - 1 <= amountOfMatches; i++) {
     // ist schon ok hier
-    matchUps.value[`${i}`] = [];
+    matchUps.set(i, []);
   }
 
   players.value.forEach((player) => (player.randomValue = Math.random()))
@@ -129,26 +136,30 @@ const startsGame = () => {
     if ((index + 1) % matchupSize.value === 0) {
       const match = []
       for (let i = 0; i < matchupSize.value; i++) {
-        match.push(players.value[index - i])
+        match.push(players.value[index - i]);
       }
       if (match.length > 0) {
-        matchUps.value[1].push(match)
+        const m: Player[][] = matchUps.get(1)!!;
+        m.push(match)
+        matchUps.set(1, m);
       }
     }
   })
-  if (matchUps.value[1].length !== players.value.length / matchupSize.value) {
-    const playersThatHaveFoundAMatchUp = matchUps.value[1].length * matchupSize.value
+  if (matchUps.get(1)!![0].length !== players.value.length / matchupSize.value) {
+    const playersThatHaveFoundAMatchUp = matchUps.get(1)!!.length * matchupSize.value
     const match: Player[] = []
     players.value.forEach((player, index) => { // spieler anzahl pro match ist noch nicht richtig
       if (index + 1 > playersThatHaveFoundAMatchUp) {
         match.push(player)
       }
       if (players.value.length === index + 1) {
-        matchUps.value[1].push(match);
+        const m: Player[][] = matchUps.get(1)!!;
+        m.push(match);
+        matchUps.set(1, m);
       }
     })
   }
-  console.log(matchUps.value);
+  console.log(matchUps.get(1));
 }
 </script>
 
@@ -184,6 +195,7 @@ const startsGame = () => {
       <li
           v-for="(player, index) in players"
           @click="!gameHasStarted ? removePlayer(index) : null"
+          v-bind:key="index"
       >
         {{ player.name }}
       </li>
@@ -191,8 +203,9 @@ const startsGame = () => {
   </aside>
 
   <div v-if="gameHasStarted">
-    <div v-for="(match, index) in matchUps" :key="index">
-      <list-of-match-ups :match-ups="match" v-if="match[0]" @submit-match="startNextRound" :current-round="index">
+    <div v-for="(matches, index) in matchUps" :key="index">
+      {{matches}}
+      <list-of-match-ups :match-ups="matchUps.get(round)!!" v-if="matches[1][0]" @submit-match="startNextRound" :current-round="index + 1">
 
       </list-of-match-ups>
     </div>

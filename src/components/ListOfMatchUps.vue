@@ -12,7 +12,7 @@ const props = defineProps<{
 
 
 const matchUp = computed(() => {
-  return props.matchUps
+  return props.matchUps;
 });
 
 const emits = defineEmits<{
@@ -23,7 +23,6 @@ const allGamsHaveFinished = (): boolean => {
   if (roundHasFinished.value) {
     return false
   }
-  console.log(matchUp.value.flat(2))
   return matchUp.value.flat(2).every((player: Player) => player.hasWonGame !== null);
 }
 
