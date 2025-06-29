@@ -34,7 +34,6 @@ const getMaxMatchSizeInputValue = computed(() => {
   const querySelector: HTMLInputElement | null = document.querySelector("#number-of-players-per-game");
   if (querySelector?.value) {
 
-    if (parseInt(querySelector?.value) >= 4) return "4";
     if (parseInt(querySelector?.value) <= 2) return "2";
 
     return querySelector?.value;
@@ -122,11 +121,6 @@ const startsGame = () => {
     matchUps.value[`${i}`] = [];
   }
 
-  const match1 = [
-      [1, 2, 3],
-      [4, 5, 6],
-  ];
-
   players.value.forEach((player) => (player.randomValue = Math.random()))
   players.value = players.value.sort(
       (player1, player2) => player1.randomValue - player2.randomValue
@@ -171,7 +165,7 @@ const startsGame = () => {
         :disabled="gameHasStarted"
     />
     <label for="number-of-players-per-game">anzahl Spieler pro spiel: </label>
-    <input type="number" id="number-of-players-per-game" name="number-of-players-per-game" max="4" min="2" value="2" v-model="matchupSize"
+    <input type="number" id="number-of-players-per-game" name="number-of-players-per-game" min="2" value="2" v-model="matchupSize"
            :disabled="gameHasStarted">
     <label for="drop-players-that-have-lost">Drop Player if they lose: </label>
     <input type="checkbox" id="drop-players-that-have-lost" name="drop-players-that-have-lost"
