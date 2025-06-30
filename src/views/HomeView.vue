@@ -5,12 +5,13 @@ import ListOfMatchUps from "@/components/ListOfMatchUps.vue";
 import FinishedView from "@/components/FinishedView.vue";
 
 const players: Ref<Player[]> = ref([])
-const matchUps: Ref<object> = ref({})
+const matchUps: Ref<any> = ref({})
 const round: Ref<number> = ref(1)
 const matchupSize: Ref<number> = ref(2)
 const playerName: Ref<string> = ref("");
 let gameHasStarted = false;
 const gameHasFinished: Ref<boolean> = ref(false);
+let amountOfMatches: number;
 
 const addToPlayers = () => {
   if (playerName.value.length > 0) {
@@ -45,7 +46,7 @@ const removePlayer = (index: number) => {
   players.value.splice(index, 1)
 }
 
-const startNextRound = (match: [Player[]]) => {
+const startNextRound = (match: Player[][]) => {
   round.value++;
 
   if (amountOfMatches + 1 < round.value) {
@@ -94,7 +95,6 @@ const startNextRound = (match: [Player[]]) => {
 }
 
 
-let amountOfMatches: number;
 const setAmountOfMatches = () => {
 // einfach nicht nachfragen, was ich hier am Kochen war
   let r = 0;
@@ -184,6 +184,7 @@ const startsGame = () => {
       <li
           v-for="(player, index) in players"
           @click="!gameHasStarted ? removePlayer(index) : null"
+          v-bind:key="index"
       >
         {{ player.name }}
       </li>
