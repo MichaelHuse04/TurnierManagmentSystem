@@ -2,27 +2,41 @@
 import type {Player} from '@/stores/typs.ts'
 import {computed, ref, type Ref} from 'vue'
 import ListOfMatchUps from "@/components/ListOfMatchUps.vue";
-import FinishedView from "@/components/FinishedView.vue";
+import FinishedTable from "@/components/FinishedTable.vue";
+import PlayerSideBar from "@/components/PlayerSideBar.vue";
 
-const players: Ref<Player[]> = ref([])
-const matchUps: Ref<any> = ref({})
-const round: Ref<number> = ref(1)
-const matchupSize: Ref<number> = ref(2)
-const playerName: Ref<string> = ref("");
-let gameHasStarted = false;
+const players: Ref<Player[]> = ref([]);
+const matchUps: Ref<any> = ref({});
+const round: Ref<number> = ref(1);
+const matchupSize: Ref<number> = ref(2);
+const gameHasStarted: Ref<boolean> = ref(false);
 const gameHasFinished: Ref<boolean> = ref(false);
-let amountOfMatches: number;
 
-const addToPlayers = () => {
-  if (playerName.value.length > 0) {
+const amountOfMatches = computed(() =>{
+  // einfach nicht nachfragen, was ich hier am Kochen war
+  let r = 0;
+  let x = players.value.length;
+  do {
+    x = x / matchupSize.value;
+    if (x <= 1) {
+      break;
+    }
+    r++;
+  } while (true);
+  if (r === 0) {
+    return 1;
+  }
+  return r;
+});
+
+const addToPlayers = (playerName: string) => {
+  if (playerName.length > 0) {
     players.value.push({
-      name: playerName.value,
+      name: playerName,
       hasWonGame: null,
       matchesWon: 0,
       randomValue: 0,
     })
-    playerName.value = "";
-  } else {
   }
 }
 
@@ -31,25 +45,16 @@ const getCheckBoxValue = computed(() => {
   return querySelector?.checked;
 });
 
-const getMaxMatchSizeInputValue = computed(() => {
-  const querySelector: HTMLInputElement | null = document.querySelector("#number-of-players-per-game");
-  if (querySelector?.value) {
-
-    if (parseInt(querySelector?.value) <= 2) return "2";
-
-    return querySelector?.value;
-  }
-  return "2";
-});
 
 const removePlayer = (index: number) => {
   players.value.splice(index, 1)
 }
 
+
 const startNextRound = (match: Player[][]) => {
   round.value++;
 
-  if (amountOfMatches + 1 < round.value) {
+  if (amountOfMatches.value + 1 < round.value) {
     gameHasFinished.value = true;
     return
   }
@@ -95,28 +100,11 @@ const startNextRound = (match: Player[][]) => {
 }
 
 
-const setAmountOfMatches = () => {
-// einfach nicht nachfragen, was ich hier am Kochen war
-  let r = 0;
-  let x = players.value.length;
-  do {
-    x = x / matchupSize.value;
-    if (x <= 1) {
-      break;
-    }
-    r++;
-  } while (true);
-  if (r === 0) {
-    amountOfMatches = 1;
-  }
-  amountOfMatches = r;
-}
+
 
 const startsGame = () => {
-  gameHasStarted = true;
-  setAmountOfMatches();
 
-  for (let i = 1; i - 1 <= amountOfMatches; i++) {
+  for (let i = 1; i - 1 <= amountOfMatches.value; i++) {
     // ist schon ok hier
     matchUps.value[`${i}`] = [];
   }
@@ -148,30 +136,22 @@ const startsGame = () => {
       }
     })
   }
+  gameHasStarted.value = true;
   console.log(matchUps.value);
+  console.log(gameHasStarted)
 }
 </script>
 
 <template>
   <body>
   <section class="inputs">
-    <label for="user">Spieler name: </label>
-    <input
-        type="text"
-        name="user"
-        id="user"
-        v-model.trim="playerName"
-        @keyup.enter="!gameHasStarted ? addToPlayers() : null"
-        :disabled="gameHasStarted"
-    />
     <label for="number-of-players-per-game">anzahl Spieler pro spiel: </label>
     <input type="number" id="number-of-players-per-game" name="number-of-players-per-game" min="2" value="2" v-model="matchupSize"
            :disabled="gameHasStarted">
     <label for="drop-players-that-have-lost">Drop Player if they lose: </label>
     <input type="checkbox" id="drop-players-that-have-lost" name="drop-players-that-have-lost"
            :disabled="gameHasStarted">
-    <button @click="addToPlayers" :disabled="gameHasStarted">add player</button>
-    <button v-if="!gameHasStarted" @click="startsGame" :disabled="parseInt(getMaxMatchSizeInputValue) > players.length">
+    <button v-if="!gameHasStarted" @click="startsGame" :disabled="matchupSize > players.length">
       Start Game
     </button>
     <a href="">
@@ -179,27 +159,19 @@ const startsGame = () => {
     </a>
   </section>
   <aside id="player-lobby">
-    <h3>Players</h3>
-    <ul>
-      <li
-          v-for="(player, index) in players"
-          @click="!gameHasStarted ? removePlayer(index) : null"
-          v-bind:key="index"
-      >
-        {{ player.name }}
-      </li>
-    </ul>
+    <PlayerSideBar :game-has-started="gameHasStarted" :players="players" @remove="removePlayer" @add="addToPlayers"></PlayerSideBar>
   </aside>
+  <div id="main">
+    <div v-if="gameHasStarted">
+      <div v-for="(match, index) in matchUps" v-bind:key="index">
+        <list-of-match-ups :match-ups="match" v-if="match[0]" @submit-match="startNextRound" :current-round="index">
 
-  <div v-if="gameHasStarted">
-    <div v-for="(match, index) in matchUps" :key="index">
-      <list-of-match-ups :match-ups="match" v-if="match[0]" @submit-match="startNextRound" :current-round="index">
-
-      </list-of-match-ups>
+        </list-of-match-ups>
+      </div>
     </div>
-  </div>
-  <div v-if="gameHasFinished">
-    <finished-view></finished-view>
+    <div v-if="gameHasFinished">
+      <finished-table></finished-table>
+    </div>
   </div>
   </body>
 </template>
@@ -215,12 +187,16 @@ body {
 
 #player-lobby {
   background-color: aliceblue;
-  width: 300px;
+  width: 15%;
   border: aliceblue solid 1px;
+  float: left;
+}
 
-  & li {
-    margin: 1px;
-    background-color: darkgrey;
-  }
+#main{
+  background-color: gold;
+  width: 70%;
+  display: flex;
+  margin: 0 15%;
+  overflow: scroll;
 }
 </style>
