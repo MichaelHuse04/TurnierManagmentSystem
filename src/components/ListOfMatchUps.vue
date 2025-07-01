@@ -6,7 +6,7 @@ const roundHasFinished: Ref<boolean> = ref(false);
 
 const props = defineProps<{
   matchUps: Player[][],
-  currentRound: number,
+  currentRound: string,
 }>();
 
 

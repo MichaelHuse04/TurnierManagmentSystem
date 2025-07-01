@@ -164,9 +164,7 @@ const startsGame = () => {
   <div id="main">
     <div v-if="gameHasStarted">
       <div v-for="(match, index) in matchUps" v-bind:key="index">
-        <list-of-match-ups :match-ups="match" v-if="match[0]" @submit-match="startNextRound" :current-round="index">
-
-        </list-of-match-ups>
+        <list-of-match-ups :match-ups="match" v-if="match[0]" @submit-match="startNextRound" :current-round="`${index}`"/>
       </div>
     </div>
     <div v-if="gameHasFinished">
