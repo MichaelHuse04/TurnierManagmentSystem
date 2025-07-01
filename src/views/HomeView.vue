@@ -9,7 +9,7 @@ const players: Ref<Player[]> = ref([]);
 const matchUps: Ref<any> = ref({});
 const round: Ref<number> = ref(1);
 const matchupSize: Ref<number> = ref(2);
-let gameHasStarted = false;
+const gameHasStarted: Ref<boolean> = ref(false);
 const gameHasFinished: Ref<boolean> = ref(false);
 
 const amountOfMatches = computed(() =>{
@@ -50,9 +50,6 @@ const removePlayer = (index: number) => {
   players.value.splice(index, 1)
 }
 
-function stupidBugFixFunc() {
-  matchupSize.value = matchupSize.value;
-}
 
 const startNextRound = (match: Player[][]) => {
   round.value++;
@@ -139,9 +136,9 @@ const startsGame = () => {
       }
     })
   }
-  gameHasStarted = true;
-  stupidBugFixFunc();
+  gameHasStarted.value = true;
   console.log(matchUps.value);
+  console.log(gameHasStarted)
 }
 </script>
 
@@ -156,9 +153,6 @@ const startsGame = () => {
            :disabled="gameHasStarted">
     <button v-if="!gameHasStarted" @click="startsGame" :disabled="matchupSize > players.length">
       Start Game
-    </button>
-    <button v-if="!gameHasStarted" @click="stupidBugFixFunc" :disabled="matchupSize > players.length">
-      BugFix
     </button>
     <a href="">
       <button>Reset</button>
