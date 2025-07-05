@@ -11,6 +11,8 @@ const round: Ref<number> = ref(1);
 const matchupSize: Ref<number> = ref(2);
 const gameHasStarted: Ref<boolean> = ref(false);
 const gameHasFinished: Ref<boolean> = ref(false);
+const playerTabIsOpen: Ref<boolean> = ref(true);
+const rulesTabIsOpen: Ref<boolean> = ref(true); // not yet implemented
 
 const amountOfMatches = computed(() =>{
   // einfach nicht nachfragen, was ich hier am Kochen war
@@ -140,10 +142,34 @@ const startsGame = () => {
   console.log(matchUps.value);
   console.log(gameHasStarted)
 }
+
+function openPlayerTab() {
+  playerTabIsOpen.value = true;
+}
+
+
+function closePlayerTab() {
+  playerTabIsOpen.value = false;
+}
+
 </script>
 
 <template>
   <body>
+  <aside id="player-lobby" :class="{
+    'player-tab-opened': playerTabIsOpen,
+    'player-tab-closed': !playerTabIsOpen,
+  }">
+    <PlayerSideBar
+        :game-has-started="gameHasStarted"
+        :players="players"
+        @remove="removePlayer"
+        @add="addToPlayers"
+        :players-tab-is-open="playerTabIsOpen"
+        @close-tab="closePlayerTab"
+        @open-tab="openPlayerTab"
+    />
+  </aside>
   <section class="inputs">
     <label for="number-of-players-per-game">anzahl Spieler pro spiel: </label>
     <input type="number" id="number-of-players-per-game" name="number-of-players-per-game" min="2" value="2" v-model="matchupSize"
@@ -158,10 +184,12 @@ const startsGame = () => {
       <button>Reset</button>
     </a>
   </section>
-  <aside id="player-lobby">
-    <PlayerSideBar :game-has-started="gameHasStarted" :players="players" @remove="removePlayer" @add="addToPlayers"></PlayerSideBar>
-  </aside>
-  <div id="main">
+  <div id="main" :class="{
+    'player-tab-is-opened': playerTabIsOpen,
+    'player-tab-is-closed': !playerTabIsOpen,
+    'rules-tab-is-opened': rulesTabIsOpen,
+    'rules-tab-is-closed': !rulesTabIsOpen,
+  }  ">
     <div v-if="gameHasStarted">
       <div v-for="(match, index) in matchUps" v-bind:key="index">
         <list-of-match-ups :match-ups="match" v-if="match[0]" @submit-match="startNextRound" :current-round="`${index}`"/>
@@ -185,16 +213,48 @@ body {
 
 #player-lobby {
   background-color: aliceblue;
+  border: aliceblue solid 0;
+  padding: 0;
+  margin: 0;
+  position: fixed;
+  left: 0;
+  top: 0;
+}
+
+.player-tab-opened{
   width: 15%;
-  border: aliceblue solid 1px;
-  float: left;
+  background-color: gold;
+}
+
+
+.player-tab-closed{
+  width: 3.5rem;
+  height: 3.5rem;
+  background-color: gold;
 }
 
 #main{
+  --width: 70%;
   background-color: gold;
-  width: 70%;
+  width: var(--width);
   display: flex;
-  margin: 0 15%;
+  margin: 5rem 0 0 0;
   overflow: scroll;
+
+  &.player-tab-is-opened{
+    margin-left: 15%;
+  }
+
+  &.player-tab-is-closed{
+    width: calc(var(--width) + 15%);
+  }
+
+  &.player-tab-is-opened{
+    margin-right: 15%;
+  }
+
+  &.player-tab-is-closed{
+    width: calc(var(--width) + 15%);
+  }
 }
 </style>
